@@ -38,9 +38,20 @@ typedef struct _THREAD
     struct _THREAD          *Self;
 
     TID                     Id;
-    char*                   Name;
 
     TID                     ParentId;
+
+    long                   NumberOfChildrenCreated;
+
+    DWORD                    TimeQuanta;
+
+    BOOLEAN                 HasCompletedNecessaryTicks;
+
+    volatile DWORD          NumberOfActiveChildren;
+
+    APIC_ID                 CreationCpuApicId;
+
+    char*                   Name;
 
     // Currently the thread priority is not used for anything
     THREAD_PRIORITY         Priority;

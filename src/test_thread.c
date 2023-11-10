@@ -3,6 +3,7 @@
 #include "test_timer.h"
 #include "test_priority_scheduler.h"
 #include "test_priority_donation.h"
+#include "../test_lp.h"
 
 #include "mutex.h"
 
@@ -189,6 +190,9 @@ const THREAD_TEST THREADS_TEST[] =
     {   "TestThreadPriorityDonationChain", TestThreadPriorityDonationChain,
         _ThreadTestPassContext, (PVOID) 7, NULL, NULL,
         ThreadPriorityDefault, FALSE, TRUE, FALSE},
+    {   "TestThreadFibb", _MultiThreadFibonacci, 
+        _ThreadTestPassContext, (PVOID) 5, NULL, NULL,
+        ThreadPriorityDefault, FALSE, TRUE, FALSE}
 };
 
 const DWORD THREADS_TOTAL_NO_OF_TESTS = ARRAYSIZE(THREADS_TEST);

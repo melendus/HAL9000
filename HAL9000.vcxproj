@@ -264,6 +264,7 @@
     <ClCompile Include="src\os_time.c" />
     <ClCompile Include="src\vmm.c" />
     <ClCompile Include="src\vm_reservation_space.c" />
+    <ClCompile Include="test_lp.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\common\mem_structures.h" />
@@ -366,6 +367,7 @@
     <ClInclude Include="headers\um_application.h" />
     <ClInclude Include="headers\vmm.h" />
     <ClInclude Include="headers\vm_reservation_space.h" />
+    <ClInclude Include="test_lp.h" />
   </ItemGroup>
   <ItemGroup>
     <YASM Include="src\_mboot32.yasm">

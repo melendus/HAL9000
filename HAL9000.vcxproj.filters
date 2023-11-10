@@ -402,6 +402,9 @@
     <ClCompile Include="src\test_process.c">
       <Filter>Source Files\debug\test\userprog</Filter>
     </ClCompile>
+    <ClCompile Include="test_lp.c">
+      <Filter>Source Files\debug\test\threads</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\HAL9000.h">
@@ -703,6 +706,9 @@
     </ClInclude>
     <ClInclude Include="headers\test_process.h">
       <Filter>Header Files\debug\test\userprog</Filter>
+    </ClInclude>
+    <ClInclude Include="test_lp.h">
+      <Filter>Header Files\debug\test\threads</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

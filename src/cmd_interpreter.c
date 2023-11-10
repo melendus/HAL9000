@@ -68,7 +68,6 @@ static const COMMAND_DEFINITION COMMANDS[] =
                 "\n\t$TIMES - number of times to wait for timer, valid only if periodic", CmdTestTimer, 1, 3},
 
     { "threads", "Displays all threads", CmdListThreads, 0, 0},
-    { "readythreads", "Displays all ready threads", CmdReadyThreads, 0, 0},
     { "run", "$TEST [$NO_OF_THREADS]\n\tRuns the $TEST specified"
              "\n\t$NO_OF_THREADS the number of threads for running the test,"
              "if the number is not specified then it will run on 2 * NumberOfProcessors",

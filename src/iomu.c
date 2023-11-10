@@ -28,7 +28,7 @@
 #define PIC_MASTER_OFFSET                   0x20
 #define PIC_SLAVE_OFFSET                    0x28
 
-#define SCHEDULER_TIMER_INTERRUPT_TIME_US   (10*MS_IN_US)
+#define SCHEDULER_TIMER_INTERRUPT_TIME_US   (40*MS_IN_US)
 
 #define HAL9000_SYSTEM_FILE_NAME            "HAL9000.ini"
 

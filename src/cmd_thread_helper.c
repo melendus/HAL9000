@@ -39,7 +39,7 @@ typedef struct _BOUND_THREAD_CTX
     // Valid only for IO bound threads
     DWORD                   EventWaitTimes;
     EX_EVENT                Event;
-} BOUND_THREAD_CTX, *PBOUND_THREAD_CTX;
+} BOUND_THREAD_CTX, * PBOUND_THREAD_CTX;
 
 static FUNC_ThreadStart     _ThreadCpuBound;
 static FUNC_ThreadStart     _ThreadIoBound;
@@ -48,18 +48,18 @@ static
 void
 _CmdHelperPrintThreadFunctions(
     void
-    );
+);
 
 __forceinline
 static
 const char*
 _CmdThreadStateToName(
     IN      THREAD_STATE        State
-    )
+)
 {
     static const char __stateNames[ThreadStateReserved][10] = { "Running", "Ready", "Blocked", "Dying" };
 
-    ASSERT( State < ThreadStateReserved);
+    ASSERT(State < ThreadStateReserved);
 
     return __stateNames[State];
 }
@@ -69,7 +69,7 @@ void
 _CmdReadAndDumpCpuid(
     IN      DWORD               Index,
     IN      DWORD               SubIndex
-    );
+);
 
 static FUNC_ListFunction _CmdThreadPrint;
 
@@ -98,50 +98,26 @@ void
     printColor(MAGENTA_COLOR, "%7s", "#PF|");
     printColor(MAGENTA_COLOR, "%15s", "Current Thread|");
 
-    for(pCurEntry = pCpuListHead->Flink;
+    for (pCurEntry = pCpuListHead->Flink;
         pCurEntry != pCpuListHead;
         pCurEntry = pCurEntry->Flink)
     {
-        PPCPU pCpu = CONTAINING_RECORD( pCurEntry, PCPU, ListEntry);
+        PPCPU pCpu = CONTAINING_RECORD(pCurEntry, PCPU, ListEntry);
         QWORD totalTicks = pCpu->ThreadData.IdleTicks + pCpu->ThreadData.KernelTicks;
 
         // we can't do division by 0 => we only divide by totalTicks if the tick count is different
         // from 0
-        QWORD percentage = 0 != totalTicks ? ( pCpu->ThreadData.IdleTicks * 10000 ) / totalTicks : 0;
+        QWORD percentage = 0 != totalTicks ? (pCpu->ThreadData.IdleTicks * 10000) / totalTicks : 0;
 
-        printf("%7x%c", pCpu->ApicId, '|' );
+        printf("%7x%c", pCpu->ApicId, '|');
         printf("%3s%c", pCpu->BspProcessor ? "YES" : "NO", '|');
         printf("%12U%c", pCpu->ThreadData.IdleTicks, '|');
         printf("%12U%c", pCpu->ThreadData.KernelTicks, '|');
         printf("%12U%c", totalTicks, '|');
         printf("%3d.%02d%c", percentage / 100, percentage % 100, '|');
-        printf("%6U%c", pCpu->PageFaults, '|' );
+        printf("%6U%c", pCpu->PageFaults, '|');
         printf("%14s%c", pCpu->ThreadData.CurrentThread->Name, '|');
     }
-}
-
-void
-(__cdecl CmdReadyThreads)(
-    IN          QWORD       NumberOfParameters
-    )
-{
-    STATUS status;
-
-    ASSERT(NumberOfParameters == 0);
-
-    LOG("%7s", "TID|");
-    LOG("%7s", "PID|");
-    LOG("%20s", "Name|");
-    LOG("%5s", "Prio|");
-    LOG("%8s", "State|");
-    LOG("%10s", "Cmp ticks|");
-    LOG("%10s", "Prt ticks|");
-    LOG("%10s", "Ttl ticks|");
-    LOG("%10s", "Process|");
-    LOG("\n");
-
-    status = ThreadExecuteForEachThreadReadyEntry(_CmdThreadPrint, NULL);
-    ASSERT(SUCCEEDED(status));
 }
 
 void
@@ -154,7 +130,6 @@ void
     ASSERT(NumberOfParameters == 0);
 
     LOG("%7s", "TID|");
-    LOG("%7s", "PID|");
     LOG("%20s", "Name|");
     LOG("%5s", "Prio|");
     LOG("%8s", "State|");
@@ -164,8 +139,8 @@ void
     LOG("%10s", "Process|");
     LOG("\n");
 
-    status = ThreadExecuteForEachThreadEntry(_CmdThreadPrint, NULL );
-    ASSERT( SUCCEEDED(status));
+    status = ThreadExecuteForEachThreadEntry(_CmdThreadPrint, NULL);
+    ASSERT(SUCCEEDED(status));
 }
 
 void
@@ -183,8 +158,8 @@ void
 void
 (__cdecl CmdRunTest)(
     IN          QWORD       NumberOfParameters,
-    IN_Z        char*       TestName,
-    IN_Z        char*       NumberOfThreadsString
+    IN_Z        char* TestName,
+    IN_Z        char* NumberOfThreadsString
     )
 {
     BOOLEAN bFoundTest;
@@ -227,9 +202,9 @@ void
 void
 (__cdecl CmdSendIpi)(
     IN          QWORD               NumberOfParameters,
-    IN_Z        char*               SendModeString,
-    IN_Z        char*               DestinationString,
-    IN_Z        char*               WaitForTerminationString
+    IN_Z        char* SendModeString,
+    IN_Z        char* DestinationString,
+    IN_Z        char* WaitForTerminationString
     )
 {
     STATUS status;
@@ -290,17 +265,17 @@ void
     SmpGetCpuList(&pCpuListHead);
 
     for (pCurEntry = pCpuListHead->Flink;
-         pCurEntry != pCpuListHead;
-         pCurEntry = pCurEntry->Flink)
+        pCurEntry != pCpuListHead;
+        pCurEntry = pCurEntry->Flink)
     {
         PPCPU pCpu = CONTAINING_RECORD(pCurEntry, PCPU, ListEntry);
 
-        LOG("Interrupts on CPU 0x%02x\n", pCpu->ApicId );
+        LOG("Interrupts on CPU 0x%02x\n", pCpu->ApicId);
         for (DWORD i = 0; i < NO_OF_TOTAL_INTERRUPTS; ++i)
         {
             if (0 != pCpu->InterruptsTriggered[i])
             {
-                LOG("%12u [0x%02x]\n", pCpu->InterruptsTriggered[i], i, pCpu->ApicId );
+                LOG("%12u [0x%02x]\n", pCpu->InterruptsTriggered[i], i, pCpu->ApicId);
                 grandTotal[i] = grandTotal[i] + pCpu->InterruptsTriggered[i];
                 total = total + pCpu->InterruptsTriggered[i];
             }
@@ -317,15 +292,15 @@ void
             LOG("%12u [0x%02x]\n", grandTotal[i], i);
         }
     }
-    LOG("%12u [TOTAL]\n", total );
+    LOG("%12u [TOTAL]\n", total);
 }
 
 void
 (__cdecl CmdTestTimer)(
     IN          QWORD               NumberOfParameters,
-    IN_Z        char*               TimerTypeString,
-    IN_Z        char*               RelativeTimeString,
-    IN_Z        char*               NumberOfTimesString
+    IN_Z        char* TimerTypeString,
+    IN_Z        char* RelativeTimeString,
+    IN_Z        char* NumberOfTimesString
     )
 {
     STATUS status;
@@ -359,15 +334,15 @@ void
     status = STATUS_SUCCESS;
 
     printf("Will start a timer of type %u, relative time %U for %u times\n",
-           timerMode, relativeTimeUs, noOfTimesToExecute);
+        timerMode, relativeTimeUs, noOfTimesToExecute);
 
     timeToWaitUs = (timerMode == ExTimerTypeAbsolute) ? IomuGetSystemTimeUs() + relativeTimeUs : relativeTimeUs;
     noOfTimesToWait = (timerMode == ExTimerTypeRelativePeriodic) ? noOfTimesToExecute : 1;
 
     status = ExTimerInit(&timer,
-                         timerMode,
-                         timeToWaitUs
-                         );
+        timerMode,
+        timeToWaitUs
+    );
     if (!SUCCEEDED(status))
     {
         perror("ExTimerInit failed with status 0x%x\n", status);
@@ -398,13 +373,13 @@ void
 void
 (__cdecl CmdCpuid)(
     IN          QWORD               NumberOfParameters,
-    IN_Z        char*               IndexString,
-    IN_Z        char*               SubIndexString
+    IN_Z        char* IndexString,
+    IN_Z        char* SubIndexString
     )
 {
     ASSERT(0 <= NumberOfParameters && NumberOfParameters <= 2);
 
-    if ( NumberOfParameters >= 1 )
+    if (NumberOfParameters >= 1)
     {
         DWORD index;
         DWORD subIdx;
@@ -427,12 +402,12 @@ void
 
         __cpuid(cpuId.values, CpuidIdxBasicInformation);
 
-        for( DWORD i = 0; i <= cpuId.BasicInformation.MaxValueForBasicInfo; ++i )
+        for (DWORD i = 0; i <= cpuId.BasicInformation.MaxValueForBasicInfo; ++i)
         {
             _CmdReadAndDumpCpuid(i, 0);
         }
 
-        __cpuid( cpuId.values, CpuidIdxFeatureInformation );
+        __cpuid(cpuId.values, CpuidIdxFeatureInformation);
 
         if (cpuId.FeatureInformation.ecx.HV)
         {
@@ -444,7 +419,7 @@ void
 
         __cpuid(cpuId.values, CpuidIdxExtendedMaxFunction);
 
-        for( DWORD i = 0x8000'0000; i <= cpuId.ExtendedInformation.MaxValueForExtendedInfo; ++i )
+        for (DWORD i = 0x8000'0000; i <= cpuId.ExtendedInformation.MaxValueForExtendedInfo; ++i)
         {
             _CmdReadAndDumpCpuid(i, 0);
         }
@@ -454,7 +429,7 @@ void
 void
 (__cdecl CmdRdmsr)(
     IN      QWORD       NumberOfParameters,
-    IN_Z    char*       IndexString
+    IN_Z    char* IndexString
     )
 {
     DWORD index;
@@ -465,14 +440,14 @@ void
 
     QWORD value = __readmsr(index);
 
-    LOG("RDMSR[%x] = 0x%X\n", index, value );
+    LOG("RDMSR[%x] = 0x%X\n", index, value);
 }
 
 void
 (__cdecl CmdWrmsr)(
     IN      QWORD       NumberOfParameters,
-    IN_Z    char*       IndexString,
-    IN_Z    char*       ValueString
+    IN_Z    char* IndexString,
+    IN_Z    char* ValueString
     )
 {
     DWORD index;
@@ -485,7 +460,7 @@ void
 
     LOG("WRMSR[%x] = 0x%X\n", index, value);
 
-    __writemsr(index, value );
+    __writemsr(index, value);
 }
 
 void
@@ -503,7 +478,7 @@ void
     dirtyCount = 0;
     accessedCount = 0;
     pData = NULL;
-    cr3.Raw = (QWORD) __readcr3();
+    cr3.Raw = (QWORD)__readcr3();
 
     pData = ExAllocatePoolWithTag(PoolAllocateZeroMemory, PAGE_SIZE, HEAP_TEMP_TAG, PAGE_SIZE);
     if (pData == NULL)
@@ -519,9 +494,9 @@ void
             BOOLEAN bDirty = FALSE;
 
             PHYSICAL_ADDRESS pAddr = VmmGetPhysicalAddressEx(cr3,
-                                                             (PVOID) pData,
-                                                             &bAccessed,
-                                                             &bDirty);
+                (PVOID)pData,
+                &bAccessed,
+                &bDirty);
             ASSERT(pAddr != NULL);
 
             accessedCount += (bAccessed == TRUE);
@@ -532,9 +507,9 @@ void
     __finally
     {
         ASSERT(pData != NULL);
-            ExFreePoolWithTag((PVOID)pData, HEAP_TEMP_TAG);
-            pData = NULL;
-        }
+        ExFreePoolWithTag((PVOID)pData, HEAP_TEMP_TAG);
+        pData = NULL;
+    }
 
     LOG("A/D: %u/%u\n", accessedCount, dirtyCount);
 }
@@ -542,8 +517,8 @@ void
 void
 (__cdecl CmdSpawnThreads)(
     IN      QWORD       NumberOfParameters,
-    IN_Z    char*       CpuBoundString,
-    IN_Z    char*       IoBoundString
+    IN_Z    char* CpuBoundString,
+    IN_Z    char* IoBoundString
     )
 {
     DWORD cpuBound;
@@ -571,9 +546,9 @@ void
     __try
     {
         pThreads = ExAllocatePoolWithTag(PoolAllocateZeroMemory,
-                                         sizeof(PTHREAD) * (cpuBound + ioBound),
-                                         HEAP_TEST_TAG,
-                                         0);
+            sizeof(PTHREAD) * (cpuBound + ioBound),
+            HEAP_TEST_TAG,
+            0);
         if (pThreads == NULL)
         {
             LOG_FUNC_ERROR_ALLOC("ExAllocatePoolWithTag", sizeof(PTHREAD) * (cpuBound + ioBound));
@@ -581,9 +556,9 @@ void
         }
 
         pCtx = ExAllocatePoolWithTag(PoolAllocateZeroMemory,
-                                     sizeof(BOUND_THREAD_CTX) * (cpuBound + ioBound),
-                                     HEAP_TEST_TAG,
-                                     0);
+            sizeof(BOUND_THREAD_CTX) * (cpuBound + ioBound),
+            HEAP_TEST_TAG,
+            0);
         if (pCtx == NULL)
         {
             LOG_FUNC_ERROR_ALLOC("ExAllocatePoolWithTag", sizeof(BOUND_THREAD_CTX) * (cpuBound + ioBound));
@@ -601,10 +576,10 @@ void
             pCtx[i].CpuUsage = CPU_BOUND_CPU_USAGE;
 
             status = ThreadCreate(thName,
-                                  ThreadPriorityDefault,
-                                  _ThreadCpuBound,
-                                  &pCtx[i],
-                                  &pThreads[i]);
+                ThreadPriorityDefault,
+                _ThreadCpuBound,
+                &pCtx[i],
+                &pThreads[i]);
             if (!SUCCEEDED(status))
             {
                 LOG_FUNC_ERROR("ThreadCreate", status);
@@ -621,15 +596,15 @@ void
 
             snprintf(thName, MAX_PATH, "IO-bound-%u", i);
 
-            pCtx[i+cpuBound].EventWaitTimes = IO_BOUND_EVENT_TIMES;
-            pCtx[i+cpuBound].CpuUsage = IO_BOUND_CPU_USAGE;
-            ExEventInit(&pCtx[i+cpuBound].Event, ExEventTypeSynchronization, FALSE);
+            pCtx[i + cpuBound].EventWaitTimes = IO_BOUND_EVENT_TIMES;
+            pCtx[i + cpuBound].CpuUsage = IO_BOUND_CPU_USAGE;
+            ExEventInit(&pCtx[i + cpuBound].Event, ExEventTypeSynchronization, FALSE);
 
             status = ThreadCreate(thName,
-                                  ThreadPriorityDefault,
-                                  _ThreadIoBound,
-                                  &pCtx[i+cpuBound],
-                                  &pThreads[i+cpuBound]);
+                ThreadPriorityDefault,
+                _ThreadIoBound,
+                &pCtx[i + cpuBound],
+                &pThreads[i + cpuBound]);
             if (!SUCCEEDED(status))
             {
                 LOG_FUNC_ERROR("ThreadCreate", status);
@@ -643,7 +618,7 @@ void
             PitSleep(50 * MS_IN_US);
             for (DWORD j = 0; j < ioBound; ++j)
             {
-                ExEventSignal(&pCtx[j+cpuBound].Event);
+                ExEventSignal(&pCtx[j + cpuBound].Event);
             }
         }
 
@@ -651,7 +626,7 @@ void
         for (DWORD i = 0; i < cpuBound + ioBound; ++i)
         {
             ThreadWaitForTermination(pThreads[i],
-                                     &status);
+                &status);
         }
 
         // List the threads statistics
@@ -686,7 +661,7 @@ static
 void
 _CmdHelperPrintThreadFunctions(
     void
-    )
+)
 {
     DWORD i;
 
@@ -705,13 +680,12 @@ STATUS
 {
     PTHREAD pThread;
 
-    ASSERT( NULL != ListEntry );
-    ASSERT( NULL == FunctionContext );
+    ASSERT(NULL != ListEntry);
+    ASSERT(NULL == FunctionContext);
 
-    pThread = CONTAINING_RECORD(ListEntry, THREAD, AllList );
+    pThread = CONTAINING_RECORD(ListEntry, THREAD, AllList);
 
     LOG("%6x%c", pThread->Id, '|');
-    LOG("%6x%c", pThread->ParentId, '|');
     LOG("%19s%c", pThread->Name, '|');
     LOG("%4U%c", pThread->Priority, '|');
     LOG("%7s%c", _CmdThreadStateToName(pThread->State), '|');
@@ -721,6 +695,10 @@ STATUS
     LOG("%9x%c", pThread->Process->Id, '|');
     LOG("\n");
 
+    LOG("Parent Thread Id: %6x\n", pThread->ParentId);
+
+
+
     return STATUS_SUCCESS;
 }
 
@@ -729,13 +707,13 @@ void
 _CmdReadAndDumpCpuid(
     IN      DWORD               Index,
     IN      DWORD               SubIndex
-    )
+)
 {
     CPUID_INFO cpuidInfo;
 
-    __cpuidex(cpuidInfo.values, Index, SubIndex );
+    __cpuidex(cpuidInfo.values, Index, SubIndex);
 
-    DumpCpuidValues(Index, SubIndex, cpuidInfo );
+    DumpCpuidValues(Index, SubIndex, cpuidInfo);
 }
 
 static
@@ -749,7 +727,7 @@ STATUS
     ASSERT(NULL == Context);
 
     pCpu = GetCurrentPcpu();
-    ASSERT( NULL != pCpu );
+    ASSERT(NULL != pCpu);
 
     printf("Hello from CPU 0x%02x [0x%02x]\n", pCpu->ApicId, pCpu->LogicalApicId);
 
@@ -761,7 +739,7 @@ __forceinline
 void
 _ThreadBusyWait(
     IN      QWORD       Microseconds
-    )
+)
 {
     QWORD start = IomuGetSystemTimeUs();
 
@@ -773,7 +751,7 @@ STATUS
     IN_OPT      PVOID       Context
     )
 {
-    PBOUND_THREAD_CTX pCtx = (PBOUND_THREAD_CTX) Context;
+    PBOUND_THREAD_CTX pCtx = (PBOUND_THREAD_CTX)Context;
 
     ASSERT(Context != NULL);
 
@@ -787,7 +765,7 @@ STATUS
     IN_OPT      PVOID       Context
     )
 {
-    PBOUND_THREAD_CTX pCtx = (PBOUND_THREAD_CTX) Context;
+    PBOUND_THREAD_CTX pCtx = (PBOUND_THREAD_CTX)Context;
 
     ASSERT(Context != NULL);
 
