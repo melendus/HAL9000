@@ -38,6 +38,11 @@ typedef struct _PROCESS
     _Guarded_by_(ThreadListLock)
     LIST_ENTRY                      ThreadList;
 
+    // ADDED CODE ASSIGN 3
+    //LIST_ENTRY                      PagesWithPageFault;
+
+    //LIST_ENTRY                      PagesFragmentationSize;
+
     _Guarded_by_(ThreadListLock)
     volatile DWORD                  NumberOfThreads;
 
@@ -59,6 +64,24 @@ typedef struct _PROCESS
     // VaSpace used only for UM virtual memory allocations
     struct _VMM_RESERVATION_SPACE*  VaSpace;
 } PROCESS, *PPROCESS;
+
+// ADDED CODE ASSIGN 3
+
+//typedef struct _PagesFaultEntry
+//{
+//    PVOID       VirtualAddress;
+//    QWORD       NumberOfPF;
+//
+//    LIST_ENTRY  PagesWithPageFault;
+//} PagesFaultEntry, *PPagesFaultEntry;
+//
+//typedef struct _PagesFaultEntry
+//{
+//    PVOID       VirtualAddress;
+//    QWORD       FragmentationSize;
+//
+//    LIST_ENTRY  PagesFragmentationSize;
+//} PagesFragEntry, * PPagesFragEntry;
 
 //******************************************************************************
 // Function:     ProcessSystemPreinit

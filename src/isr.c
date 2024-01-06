@@ -105,6 +105,12 @@ _IsrExceptionHandler(
         errorCode = (DWORD)StackPointer->ErrorCode;
     }
 
+    if (!GdtIsSegmentPrivileged((WORD)StackPointer->Registers.CS))
+    {
+        ProcessTerminate(NULL);
+    }
+
+
     if (ExceptionPageFault == InterruptIndex)
     {
         PVOID pfAddr;

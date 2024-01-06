@@ -563,6 +563,7 @@ VmmAllocRegionEx(
                                                FileObject,
                                                &pBaseAddress,
                                                &alignedSize);
+
         if (!SUCCEEDED(status))
         {
             LOG_FUNC_ERROR("VmReservationSpaceAllocRegion", status);
@@ -676,6 +677,33 @@ VmmAllocRegionEx(
             {
                 LOG_WARNING("Successfully mapped W+X memory at 0x%X of size 0x%X\n",
                             pBaseAddress, alignedSize);
+
+                // ADDED CODE ASSIGN 3
+              /*  PPROCESS currentProcess = GetCurrentProcess();
+                PagesFragEntry* curEntry;
+                LIST_ENTRY head;
+                BOOLEAN found = FALSE;
+
+                for (PLIST_ENTRY pEntry = currentProcess->PagesWithPageFault.Flink;
+                    pEntry != &currentProcess->PagesWithPageFault;
+                    pEntry = pEntry->Flink
+                    )
+                {
+                    curEntry = CONTAINING_RECORD(pEntry, PagesFragEntry, PagesFragmentationSize);
+                    if (curEntry->VirtualAddress == pBaseAddress) {
+                        curEntry->FragmentationSize = PAGE_SIZE - alignedSize;
+                        found = TRUE;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    curEntry = ExAllocatePoolWithTag(0, sizeof(PagesFragEntry), HEAP_TEST_TAG, 0);
+                    ASSERT(curEntry != NULL);
+
+                    InsertTailList(&currentProcess->PagesWithPageFault, &curEntry->PagesFragmentationSize);
+                }*/
+
             }
         }
     }
@@ -795,6 +823,33 @@ VmmSolvePageFault(
         {
             PHYSICAL_ADDRESS pa;
             PVOID alignedAddress;
+
+            // ADDED CODE ASSIGN 3
+         /*   PPROCESS currentProcess = GetCurrentProcess();
+            PagesFaultEntry* curEntry;
+            LIST_ENTRY head;
+            BOOLEAN found = FALSE;
+
+        for (PLIST_ENTRY pEntry = currentProcess->PagesWithPageFault.Flink;
+            pEntry != &currentProcess->PagesWithPageFault;
+            pEntry = pEntry->Flink
+            )
+            {
+            curEntry = CONTAINING_RECORD(pEntry, PagesFaultEntry, PagesWithPageFault);
+            if (curEntry->VirtualAddress == FaultingAddress) {
+                curEntry->NumberOfPF++;
+                found = TRUE;
+                break;
+            }
+            }
+
+        if (!found) {
+            curEntry = ExAllocatePoolWithTag(0, sizeof(PagesFaultEntry), HEAP_TEST_TAG, 0);
+            ASSERT(curEntry != NULL);
+
+            InsertTailList(&currentProcess->PagesWithPageFault, &curEntry->PagesWithPageFault);
+        }*/
+
 
             // solve #PF
 
