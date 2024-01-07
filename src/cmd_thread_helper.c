@@ -143,6 +143,22 @@ void
     ASSERT(SUCCEEDED(status));
 }
 
+
+//THREADS exercise 4
+void
+(__cdecl CmdPrintNrOfThreads)(
+    IN          QWORD       NumberOfParameters
+)
+{
+    ASSERT(NumberOfParameters == 0);
+
+    STATUS status;
+
+    status = ThreadPrintNrOfThreads();
+
+    ASSERT(SUCCEEDED(status));
+}
+
 void
 (__cdecl CmdYield)(
     IN          QWORD       NumberOfParameters
@@ -693,6 +709,20 @@ STATUS
     LOG("%9U%c", pThread->TickCountEarly, '|');
     LOG("%9U%c", pThread->TickCountCompleted + pThread->TickCountEarly, '|');
     LOG("%9x%c", pThread->Process->Id, '|');
+
+
+    //THREADS exercise 3
+    ThreadListItem* curItem;
+
+    for (PLIST_ENTRY pEntry = pThread->Children.Flink;
+        pEntry != &pThread->Children;
+        pEntry = pEntry->Flink
+        ) {
+        curItem = CONTAINING_RECORD(pEntry, ThreadListItem, Children);
+        LOG("children %9x%c", curItem->Id, '|');
+    }
+
+
     LOG("\n");
 
     LOG("Parent Thread Id: %6x\n", pThread->ParentId);

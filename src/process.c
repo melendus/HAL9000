@@ -20,7 +20,22 @@ typedef struct _PROCESS_SYSTEM_DATA
 
     LIST_ENTRY      ProcessList;
     MUTEX           ProcessListLock;
+
+    //USERPROG exercise 8
+   LIST_ENTRY      Variables;
+   MUTEX           VariablesLock;
 } PROCESS_SYSTEM_DATA, *PPROCESS_SYSTEM_DATA;
+
+
+////USERPROG exercise 8
+typedef struct _VariablesEntry
+{
+    char*       VariableName;
+    DWORD       VariableLength;
+    QWORD       Value;
+
+    LIST_ENTRY  Variables;
+} VariablesEntry, * PVariablesEntry;
 
 static PROCESS_SYSTEM_DATA m_processData;
 
@@ -120,6 +135,10 @@ ProcessSystemPreinit(
 
     MutexInit(&m_processData.ProcessListLock, FALSE);
     InitializeListHead(&m_processData.ProcessList);
+   
+    //USERPROG exercise 8
+    MutexInit(&m_processData.VariablesLock, FALSE);
+    InitializeListHead(&m_processData.Variables);
 }
 
 _No_competing_thread_
@@ -766,4 +785,63 @@ _ProcessDestroy(
     }
 
     ExFreePoolWithTag(Process, HEAP_PROCESS_TAG);
+}
+
+
+void
+ProcessSetGlobalVariable(
+    IN_READS_Z(VarLength)           char* VariableName,
+    IN                              DWORD   VarLength,
+    IN                              QWORD   Value
+)
+{
+    //parcurg lista
+    //verific daca exista pt nume variabla
+    //exista? update
+    //nu exista adaug
+
+    VariablesEntry* curEntry;
+
+    for (PLIST_ENTRY pEntry = &m_processData.Variables.Flink;
+        pEntry != &m_processData.Variables;
+        pEntry = pEntry->Flink
+        ) {
+        curEntry = CONTAINING_RECORD(pEntry, VariablesEntry, Variables);
+
+        if (strcmp(curEntry->VariableName, VariableName) == 0 && curEntry->VariableLength == VarLength) {
+            curEntry->Value = Value;
+            return;
+        }
+    }
+
+    curEntry = ExAllocatePoolWithTag(0, sizeof(VariablesEntry), HEAP_TEMP_TAG, 0);
+    ASSERT(curEntry != NULL);
+
+    InsertTailList(&m_processData.Variables, &curEntry->Variables);
+    return;
+}
+
+void
+ProcessGetGlobalVariable(
+    IN_READS_Z(VarLength)           char* VariableName,
+    IN                              DWORD   VarLength,
+    OUT                             PQWORD  Value
+) {
+
+    VariablesEntry* curEntry;
+
+    for (PLIST_ENTRY pEntry = &m_processData.Variables.Flink;
+        pEntry != &m_processData.Variables;
+        pEntry = pEntry->Flink
+        ) {
+        curEntry = CONTAINING_RECORD(pEntry, VariablesEntry, Variables);
+
+        if (strcmp(curEntry->VariableName, VariableName) == 0 && curEntry->VariableLength == VarLength) {
+            *Value = curEntry->Value;
+            return;
+        }
+    }
+
+    *Value = NULL;
+    return;
 }

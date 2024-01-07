@@ -4,6 +4,7 @@
 
 FUNC_GenericCommand CmdListCpus;
 FUNC_GenericCommand CmdListThreads;
+FUNC_GenericCommand CmdPrintNrOfThreads;
 FUNC_GenericCommand CmdYield;
 FUNC_GenericCommand CmdRunTest;
 FUNC_GenericCommand CmdSendIpi;

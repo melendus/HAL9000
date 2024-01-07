@@ -45,6 +45,9 @@ typedef struct _THREAD
 
     DWORD                    TimeQuanta;
 
+    //THREADS exercise 2
+    DWORD                   TimesYielded;
+
     BOOLEAN                 HasCompletedNecessaryTicks;
 
     volatile DWORD          NumberOfActiveChildren;
@@ -76,6 +79,9 @@ typedef struct _THREAD
     // List of the threads in the same process
     LIST_ENTRY              ProcessList;
 
+    // THREADS exercise 3
+    LIST_ENTRY              Children;
+
     // Incremented on each clock tick for the running thread
     QWORD                   TickCountCompleted;
 
@@ -104,6 +110,15 @@ typedef struct _THREAD
 
     struct _PROCESS*        Process;
 } THREAD, *PTHREAD;
+
+
+// Threads exercise 3
+typedef struct _ThreadListItem
+{
+    LIST_ENTRY              Children;
+    TID                     Id;
+} ThreadListItem, *PThreadListItem;
+
 
 //******************************************************************************
 // Function:     ThreadSystemPreinit

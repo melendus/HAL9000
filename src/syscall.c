@@ -11,10 +11,13 @@
 #include "cpumu.h"
 #include "smp.h"
 #include "vmm.h"
+#include "mutex.h"
 
 extern void SyscallEntry();
 
 #define SYSCALL_IF_VERSION_KM       SYSCALL_IMPLEMENTED_IF_VERSION
+
+static BOOLEAN areSyscallsDisabled = FALSE;
 
 void
 SyscallHandler(
@@ -105,6 +108,27 @@ SyscallHandler(
         case SyscallIdThreadExit:
             status = SyscallThreadExit((STATUS)*pSyscallParameters);
             break;
+        case SyscallIdMemset:
+            status = SyscallMemset((PBYTE)pSyscallParameters[0], (DWORD)pSyscallParameters[1], (BYTE)pSyscallParameters[2]);
+            break;
+        case SyscallIdDisableSyscalls:
+            status = SyscallDisableSyscalls((BOOLEAN)*pSyscallParameters);
+            break;
+        case SyscallIdSetGlobalVariable:
+            status = SyscallSetGlobalVariable((char*)pSyscallParameters[0], (DWORD)pSyscallParameters[1], (QWORD)pSyscallParameters[2]);
+            break;
+        case SyscallIdGetGlobalVariable:
+            status = SyscallGetGlobalVariable((char*)pSyscallParameters[0], (DWORD)pSyscallParameters[1], (QWORD)pSyscallParameters[2]);
+            break;
+        case SyscallIdMutexInit:
+            status = SyscallMutexInit((UM_HANDLE)*pSyscallParameters);
+            break;
+        case SyscallIdMutexAcquire:
+            status = SyscallMutexAcquire((UM_HANDLE)*pSyscallParameters);
+            break;
+        case SyscallIdMutexRelease:
+            status = SyscallMutexRelease((UM_HANDLE)*pSyscallParameters);
+            break;
         // STUDENT TODO: implement the rest of the syscalls
         default:
             LOG_ERROR("Unimplemented syscall called from User-space! ID OF SYSCALL: %d\n", sysCallId);
@@ -190,6 +214,7 @@ SyscallCpuInit(
 }
 
 // SyscallIdIdentifyVersion
+//USERPROG exercise 1
 STATUS
 SyscallValidateInterface(
     IN  SYSCALL_IF_VERSION          InterfaceVersion
@@ -268,6 +293,11 @@ SyscallThreadGetTid(
     OUT     TID* ThreadId
 )
 {
+    //USERPROG exercise 6
+    if (areSyscallsDisabled) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     STATUS status;
     PTHREAD myThread;
     myThread = NULL;
@@ -302,6 +332,12 @@ SyscallProcessGetName(
     IN QWORD                        ProcessNameMaxLen,
     OUT char*                       ProcessName
 ) {
+
+    //USERPROG exercise 6
+    if (areSyscallsDisabled) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     STATUS status;
     PPROCESS currentProcess = GetCurrentProcess();
     DWORD processNameLength;
@@ -339,6 +375,11 @@ STATUS
 SyscallGetThreadPriority(
     OUT BYTE* ThreadPriority
 ) {
+    //USERPROG exercise 6
+    if (areSyscallsDisabled) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     STATUS status;
 
     if (ThreadPriority == NULL) {
@@ -371,6 +412,11 @@ STATUS
 SyscallSetThreadPriority(
     IN BYTE ThreadPriority
 ) {
+    //USERPROG exercise 6
+    if (areSyscallsDisabled) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     if (&ThreadPriority == NULL) {
         return STATUS_UNSUCCESSFUL;
     }
@@ -394,6 +440,11 @@ STATUS
 SyscallGetCurrentCPUID(
     OUT BYTE* CpuId
 ) {
+    //USERPROG exercise 6
+    if (areSyscallsDisabled) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     STATUS status;
     PPCPU pCpu;
 
@@ -423,6 +474,11 @@ STATUS
 SyscallGetNumberOfThreadsForCurrentProcess(
     OUT QWORD* ThreadNo
 ) {
+    //USERPROG exercise 6
+    if (areSyscallsDisabled) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     STATUS status;
 
     if (ThreadNo == NULL) {
@@ -453,6 +509,11 @@ SyscallGetCPUUtilization(
     IN_OPT BYTE* CpuId,
     OUT BYTE* Utilization
 ) {
+    //USERPROG exercise 6
+    if (areSyscallsDisabled) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     BYTE calculatedUtilization;
 
 
@@ -510,6 +571,7 @@ SyscallGetCPUUtilization(
     return STATUS_UNSUCCESSFUL;
 }
 
+//USERPROG exercise 1
 STATUS
 SyscallProcessExit(
     IN      STATUS                  ExitStatus
@@ -521,15 +583,198 @@ SyscallProcessExit(
     return STATUS_SUCCESS;
 }
 
+//USERPROG exercise 1
 STATUS
 SyscallThreadExit(
     IN  STATUS                      ExitStatus
 )
 {
+    //USERPROG exercise 6
+    if (areSyscallsDisabled) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     ThreadExit(ExitStatus);
     return STATUS_SUCCESS;
 }
 
+
+//USERPROG exercise 4
+STATUS
+SyscallMemset(
+    OUT_WRITES(BytesToWrite)    PBYTE   Address,
+    IN                          DWORD   BytesToWrite,
+    IN                          BYTE    ValueToWrite
+) {
+    //USERPROG exercise 6
+    if (areSyscallsDisabled) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    STATUS status;
+
+    if (BytesToWrite == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    if (BytesToWrite <= 0) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    if (ValueToWrite == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    status = MmuIsBufferValid(Address, sizeof(PBYTE), PAGE_RIGHTS_WRITE, GetCurrentProcess());
+
+
+    if (!SUCCEEDED(status))
+    {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    memset(Address, ValueToWrite, BytesToWrite);
+
+    return STATUS_SUCCESS;
+}
+
+//USERPROG exercise 6
+STATUS
+SyscallDisableSyscalls(
+    IN      BOOLEAN     Disable
+) {
+    if (Disable == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    areSyscallsDisabled = Disable;
+
+    return STATUS_SUCCESS;
+}
+
+//USERPROG exercise 7
+STATUS
+SyscallSetGlobalVariable(
+    IN_READS_Z(VarLength)           char* VariableName,
+    IN                              DWORD   VarLength,
+    IN                              QWORD   Value
+)
+{
+    if (VariableName == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    if (VarLength == NULL && VarLength <= 0) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    if (Value == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    ProcessSetGlobalVariable(VariableName, VarLength, Value);
+
+    return STATUS_SUCCESS;
+}
+
+//USERPROG exercise 7
+
+STATUS
+SyscallGetGlobalVariable(
+    IN_READS_Z(VarLength)           char* VariableName,
+    IN                              DWORD   VarLength,
+    OUT                             PQWORD  Value
+)
+{
+    STATUS status;
+
+    if (VariableName == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    if (VarLength == NULL && VarLength <= 0) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    status = MmuIsBufferValid(Value, sizeof(PQWORD), PAGE_RIGHTS_WRITE, GetCurrentProcess());
+
+    if (!SUCCEEDED(status))
+    {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    ProcessGetGlobalVariable(VariableName, VarLength, Value);
+
+    if (Value == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    return STATUS_SUCCESS;
+}
+
+//USERPROG exercise 8
+STATUS
+SyscallMutexInit(
+    OUT         UM_HANDLE* Mutex
+)
+{
+    if ((PMUTEX)Mutex == NULL)
+    {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    MutexInit((PMUTEX)Mutex, FALSE);
+
+    return STATUS_SUCCESS;
+}
+
+//USERPROG exercise 8
+STATUS
+SyscallMutexAcquire(
+    IN       UM_HANDLE          Mutex
+)
+{
+    STATUS status;
+
+    if ((PMUTEX)Mutex == NULL)
+    {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    status = MmuIsBufferValid((PMUTEX)Mutex, sizeof(MUTEX), PAGE_RIGHTS_ALL, GetCurrentProcess());
+    if (!SUCCEEDED(status))
+    {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    MutexAcquire((PMUTEX)Mutex);
+
+    return STATUS_SUCCESS;
+}
+
+//USERPROG exercise 8
+STATUS
+SyscallMutexRelease(
+    IN       UM_HANDLE          Mutex
+)
+{
+    STATUS status;
+
+    if ((PMUTEX)Mutex == NULL)
+    {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    status = MmuIsBufferValid((PMUTEX)Mutex, sizeof(MUTEX), PAGE_RIGHTS_ALL, GetCurrentProcess());
+    if (!SUCCEEDED(status))
+    {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    MutexRelease((PMUTEX)Mutex);
+
+    return STATUS_SUCCESS;
+}
 
 //CODE FOR VIRTUAL MEMORY ASSIGNMENT
 //STATUS
